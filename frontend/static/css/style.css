@@ -331,6 +331,14 @@ input[type="range"]::-webkit-slider-thumb {
   margin: 0 auto;
 }
 
+.drive-toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    BADGE
    ═══════════════════════════════════════════════════════════════ */
@@ -760,6 +768,14 @@ input[type="range"]::-webkit-slider-thumb {
   align-items: center;
   justify-content: center;
   overflow: hidden;
+}
+.camera-stream {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #050608;
 }
 .camera-grain {
   position: absolute;

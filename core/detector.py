@@ -1,5 +1,21 @@
 import numpy as np
 import mediapipe as mp
+import cv2
+
+# Fallback to dlib for older Python/MediaPipe compatibility. Install: pip install dlib
+try:
+    import dlib
+    predictor_path = 'core/shape_predictor_68_face_landmarks.dat'
+    
+    if not os.path.exists(predictor_path):
+        print(f"Download {predictor_path} from http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2")
+        # Uncomment after download
+        # detector = dlib.get_frontal_face_detector()
+        # predictor = dlib.shape_predictor(predictor_path)
+    
+    DLIB_AVAILABLE = True
+except:
+    DLIB_AVAILABLE = False
 
 mp_face_mesh = mp.solutions.face_mesh
 face_mesh = mp_face_mesh.FaceMesh(
@@ -14,15 +30,12 @@ LEFT_EYE_IDX  = [33, 160, 158, 133, 153, 144]
 RIGHT_EYE_IDX = [362, 385, 387, 263, 373, 380]
 MOUTH_IDX     = [61, 291, 13, 14, 78, 308]
 
-
 def euclidean(p1, p2):
     return np.linalg.norm(np.array(p1) - np.array(p2))
-
 
 def get_point(landmarks, idx, w, h):
     lm = landmarks[idx]
     return (int(lm.x * w), int(lm.y * h))
-
 
 def eye_aspect_ratio(landmarks, eye_indices, w, h):
     pts = [get_point(landmarks, i, w, h) for i in eye_indices]
@@ -33,7 +46,6 @@ def eye_aspect_ratio(landmarks, eye_indices, w, h):
         return 0.0
     return (A + B) / (2.0 * C)
 
-
 def mouth_aspect_ratio(landmarks, mouth_indices, w, h):
     pts = [get_point(landmarks, i, w, h) for i in mouth_indices]
     A = euclidean(pts[2], pts[3])
@@ -42,18 +54,15 @@ def mouth_aspect_ratio(landmarks, mouth_indices, w, h):
         return 0.0
     return A / B
 
-
 def process_frame(frame):
     """
     Run MediaPipe on a BGR frame.
     Returns (results, h, w)
     """
-    import cv2
     h, w, _ = frame.shape
     rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     results = face_mesh.process(rgb)
     return results, h, w
-
 
 def get_ear_mar(landmarks, w, h):
     """
@@ -64,3 +73,4 @@ def get_ear_mar(landmarks, w, h):
     ear   = (ear_l + ear_r) / 2.0
     mar   = mouth_aspect_ratio(landmarks, MOUTH_IDX, w, h)
     return ear, mar
+

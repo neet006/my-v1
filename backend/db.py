@@ -170,6 +170,7 @@ DEFAULT_SETTINGS: dict = {
     "privacy_mode":            False,
     "share_anonymous_data":    True,
     "emergency_contact_phone": "",
+    "alert_email_recipient":   "",
 }
 
 

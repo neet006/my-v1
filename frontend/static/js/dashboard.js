@@ -1,135 +1,177 @@
 /**
- * dashboard.js — Live Monitor simulation for A.M.A.T.S.
- * Simulates real-time drowsiness, blink rate, eye status, and session timer.
- * All element lookups are guarded so this file never throws if an element is missing.
+ * dashboard.js - Real webcam monitor controls for the Flask dashboard.
  */
 (function () {
   'use strict';
 
-  // ── Safe element getter ────────────────────────────────────────
   function el(id) { return document.getElementById(id); }
 
-  const drowsinessPctEl  = el('drowsiness-pct');
-  const drowsinessBarEl  = el('drowsiness-fill');
-  const eyeStatusEl      = el('eye-status-val');
-  const blinkRateEl      = el('blink-rate-val');
-  const sessionTimeEl    = el('session-time-val');
-  const statusBadgeEl    = el('current-status-badge');
-  const alertsListEl     = el('alerts-list');
-  const eyeTrackTextEl   = el('eye-tracking-text');
-  const toastContainer   = el('toast-container');
+  var drowsinessPctEl = el('drowsiness-pct');
+  var drowsinessBarEl = el('drowsiness-fill');
+  var eyeStatusEl = el('eye-status-val');
+  var blinkRateEl = el('blink-rate-val');
+  var sessionTimeEl = el('session-time-val');
+  var statusBadgeEl = el('current-status-badge');
+  var alertsListEl = el('alerts-list');
+  var eyeTrackTextEl = el('eye-tracking-text');
+  var faceStatusTextEl = el('face-status-text');
+  var liveIndicatorEl = el('live-indicator');
+  var startDriveBtn = el('start-drive-btn');
+  var stopDriveBtn = el('stop-drive-btn');
+  var cameraStreamEl = el('camera-stream');
+  var toastContainer = el('toast-container');
+  var pollHandle = null;
+  var lastErrorMessage = '';
 
-  // ── State ─────────────────────────────────────────────────────
-  const sessionStart = Date.now();
-  let drowsiness     = 5;      // 0-100
-  let blinkRate      = 17;
-  let alertCount     = 0;
-  const recentAlerts = [];
-
-  // ── Toast ─────────────────────────────────────────────────────
   function showToast(msg, type) {
-    type = type || 'warning';
+    var tone = type === 'success' ? 'success' : 'error';
     if (!toastContainer) return;
-    const t = document.createElement('div');
-    t.className = 'toast toast-' + (type === 'success' ? 'success' : 'error');
-    t.textContent = (type === 'success' ? '✅ ' : '⚠️ ') + msg;
+    var t = document.createElement('div');
+    t.className = 'toast toast-' + tone;
+    t.textContent = msg;
     toastContainer.appendChild(t);
     setTimeout(function () {
       t.style.animation = 'fade-out .3s ease forwards';
-      setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 300);
-    }, 4000);
+      setTimeout(function () {
+        if (t.parentNode) t.parentNode.removeChild(t);
+      }, 300);
+    }, 3200);
   }
 
-  // ── Timer ─────────────────────────────────────────────────────
-  function formatTime(ms) {
-    var totalSec = Math.floor(ms / 1000);
-    var h   = Math.floor(totalSec / 3600);
-    var m   = Math.floor((totalSec % 3600) / 60);
-    var s   = totalSec % 60;
-    return (h < 10 ? '0' : '') + h + ':' +
-           (m < 10 ? '0' : '') + m + ':' +
-           (s < 10 ? '0' : '') + s;
-  }
-
-  function updateTimer() {
-    if (sessionTimeEl) {
-      sessionTimeEl.textContent = '🕐 ' + formatTime(Date.now() - sessionStart);
-    }
-  }
-
-  // ── Status classification ─────────────────────────────────────
-  function classifyStatus(pct) {
-    if (pct < 30) return { label: 'ALERT',    badgeClass: 'badge-ok' };
-    if (pct < 60) return { label: 'DROWSY',   badgeClass: 'badge-warning' };
-    return             { label: 'CRITICAL', badgeClass: 'badge-alert' };
-  }
-
-  // ── Alert panel update ────────────────────────────────────────
-  function pushAlert(msg) {
-    var now = new Date();
-    var t   = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
-    recentAlerts.unshift(t + ' — ' + msg);
-    if (recentAlerts.length > 5) recentAlerts.pop();
-
-    if (alertsListEl) {
-      alertsListEl.innerHTML = '';          // clear old content safely
-      recentAlerts.forEach(function (a) {
-        var div = document.createElement('div');
-        div.style.cssText = 'font-size:12px;padding:5px 0;border-bottom:1px solid var(--border);color:var(--text-secondary)';
-        div.textContent = a;
-        alertsListEl.appendChild(div);
-      });
-    }
-    showToast(msg, 'warning');
-  }
-
-  // ── Main simulation tick ───────────────────────────────────────
-  function tick() {
-    // Natural drift
-    drowsiness += (Math.random() - 0.47) * 4;
-    drowsiness  = Math.max(2, Math.min(98, drowsiness));
-    blinkRate  += (Math.random() - 0.5) * 2;
-    blinkRate   = Math.round(Math.max(10, Math.min(28, blinkRate)));
-
-    var pct    = Math.round(drowsiness);
-    var eyeOpen = drowsiness < 65 || Math.random() > 0.25;
-    var status  = classifyStatus(pct);
-
-    // Update drowsiness %
-    if (drowsinessPctEl)  drowsinessPctEl.textContent = pct + '%';
-    if (drowsinessBarEl)  drowsinessBarEl.style.width = pct + '%';
-
-    // Update blink rate
-    if (blinkRateEl) blinkRateEl.textContent = blinkRate + ' bpm';
-
-    // Update eye status
-    if (eyeStatusEl) {
-      eyeStatusEl.textContent = eyeOpen ? '👁️ Open' : '😴 Closed';
-      eyeStatusEl.style.color = eyeOpen ? 'var(--accent-green)' : 'var(--accent-red)';
-    }
-    if (eyeTrackTextEl) {
-      eyeTrackTextEl.textContent = 'Eye Tracking: ' + (eyeOpen ? 'Open' : 'Closed');
-    }
-
-    // Update status badge
+  function updateBadge(status) {
+    var label = status || 'IDLE';
+    var badgeClass = 'badge-dark';
+    if (label === 'SAFE' || label === 'ALERT') badgeClass = 'badge-ok';
+    if (label === 'WARNING' || label === 'DROWSY') badgeClass = 'badge-warning';
+    if (label === 'HIGH RISK' || label === 'CRITICAL') badgeClass = 'badge-alert';
     if (statusBadgeEl) {
-      statusBadgeEl.textContent = status.label;
-      statusBadgeEl.className   = 'badge ' + status.badgeClass;
-    }
-
-    // Trigger alert at high drowsiness (random so it's not every tick)
-    if (pct >= 60 && Math.random() > 0.92) {
-      alertCount++;
-      pushAlert('Drowsiness alert #' + alertCount + ' — Level: ' + pct + '%');
-    } else if (!eyeOpen && Math.random() > 0.94) {
-      pushAlert('Eyes closed detected — stay alert!');
+      statusBadgeEl.textContent = label;
+      statusBadgeEl.className = 'badge ' + badgeClass;
     }
   }
 
-  // ── Kick off ──────────────────────────────────────────────────
-  updateTimer();
-  tick();
-  setInterval(updateTimer, 1000);
-  setInterval(tick, 1800);
+  function renderAlerts(alerts) {
+    if (!alertsListEl) return;
+    alertsListEl.innerHTML = '';
+    if (!alerts || !alerts.length) {
+      alertsListEl.textContent = 'No alerts in this drive';
+      return;
+    }
+    alerts.forEach(function (item) {
+      var div = document.createElement('div');
+      div.style.cssText = 'font-size:12px;padding:5px 0;border-bottom:1px solid var(--border);color:var(--text-secondary)';
+      div.textContent = item;
+      alertsListEl.appendChild(div);
+    });
+  }
 
+  function renderStatus(data) {
+    if (drowsinessPctEl) drowsinessPctEl.textContent = (data.drowsiness || 0) + '%';
+    if (drowsinessBarEl) drowsinessBarEl.style.width = (data.drowsiness || 0) + '%';
+    if (eyeStatusEl) {
+      eyeStatusEl.textContent = data.eye_status || 'Waiting';
+      eyeStatusEl.style.color = data.eye_status === 'Closed' ? 'var(--accent-red)' : (data.eye_status === 'Open' ? 'var(--accent-green)' : 'var(--text-secondary)');
+    }
+    if (blinkRateEl) blinkRateEl.textContent = (data.blink_rate || 0) + ' bpm';
+    if (sessionTimeEl) sessionTimeEl.textContent = data.session_time || '00:00:00';
+    if (eyeTrackTextEl) eyeTrackTextEl.textContent = 'Eye Tracking: ' + (data.eye_status || 'Waiting');
+    if (faceStatusTextEl) faceStatusTextEl.textContent = data.face_detected ? 'Face Detection: Active' : 'Face Detection: No face';
+    if (liveIndicatorEl) liveIndicatorEl.textContent = data.running ? 'LIVE' : 'IDLE';
+    if (startDriveBtn) startDriveBtn.disabled = !!data.running;
+    if (stopDriveBtn) stopDriveBtn.disabled = !data.running;
+    updateBadge(data.running ? data.status : 'IDLE');
+    renderAlerts(data.recent_alerts || []);
+
+    if (cameraStreamEl) {
+      cameraStreamEl.style.opacity = data.running ? '1' : '0.25';
+    }
+    if (data.error && data.error !== lastErrorMessage) {
+      lastErrorMessage = data.error;
+      showToast(data.error, 'error');
+    }
+    if (!data.error) {
+      lastErrorMessage = '';
+    }
+  }
+
+  function pollStatus() {
+    fetch('/api/monitor/status', {
+      credentials: 'same-origin'
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        renderStatus(data);
+      })
+      .catch(function () {
+        showToast('Could not read monitor status.', 'error');
+        stopPolling();
+      });
+  }
+
+  function startPolling() {
+    stopPolling();
+    pollStatus();
+    pollHandle = setInterval(pollStatus, 1000);
+  }
+
+  function stopPolling() {
+    if (pollHandle) {
+      clearInterval(pollHandle);
+      pollHandle = null;
+    }
+  }
+
+  function startDrive() {
+    if (startDriveBtn) startDriveBtn.disabled = true;
+    fetch('/api/monitor/start', {
+      method: 'POST',
+      credentials: 'same-origin'
+    })
+      .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+      .then(function (result) {
+        if (!result.ok || !result.data.ok) {
+          throw new Error(result.data.error || 'Could not start camera monitor.');
+        }
+        startPolling();
+        showToast('Camera monitoring started.', 'success');
+      })
+      .catch(function (err) {
+        if (startDriveBtn) startDriveBtn.disabled = false;
+        showToast(err.message || 'Could not start drive.', 'error');
+      });
+  }
+
+  function stopDrive() {
+    if (stopDriveBtn) stopDriveBtn.disabled = true;
+    fetch('/api/monitor/stop', {
+      method: 'POST',
+      credentials: 'same-origin'
+    })
+      .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+      .then(function (result) {
+        if (!result.ok || !result.data.ok) {
+          throw new Error('Could not stop camera monitor.');
+        }
+        renderStatus({
+          running: false,
+          drowsiness: 0,
+          eye_status: 'Waiting',
+          blink_rate: 0,
+          session_time: '00:00:00',
+          status: 'IDLE',
+          face_detected: false,
+          recent_alerts: [],
+        });
+        startPolling();
+        showToast('Drive stopped and statistics saved.', 'success');
+      })
+      .catch(function () {
+        showToast('Could not stop drive.', 'error');
+      });
+  }
+
+  if (startDriveBtn) startDriveBtn.addEventListener('click', startDrive);
+  if (stopDriveBtn) stopDriveBtn.addEventListener('click', stopDrive);
+
+  startPolling();
 })();

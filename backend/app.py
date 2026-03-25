@@ -40,14 +40,16 @@ _db = _load_db()
 create_user      = _db.create_user
 verify_user      = _db.verify_user
 get_sessions     = _db.get_sessions
+save_session     = _db.save_session
 get_settings     = _db.get_settings
 save_settings    = _db.save_settings
 DEFAULT_SESSIONS = _db.DEFAULT_SESSIONS
 
 from flask import (
     Flask, render_template, request, redirect,
-    url_for, session, jsonify
+    url_for, session, jsonify, Response
 )
+from backend.camera_service import camera_monitor
 
 app = Flask(
     __name__,
@@ -175,6 +177,7 @@ def statistics():
         "statistics.html",
         user_name=session.get("user_name", "Driver"),
         sessions=sessions_data,
+        sessions_json=sessions_data,
         active_tab="statistics",
     )
 
@@ -193,16 +196,21 @@ def settings():
     )
 
 
-@app.route("/shop")
-def shop():
+@app.route("/music")
+def music():
     guard = require_login(request.path)
     if guard:
         return guard
     return render_template(
-        "shop.html",
+        "music.html",
         user_name=session.get("user_name", "Driver"),
-        active_tab="shop",
+        active_tab="music",
     )
+
+
+@app.route("/shop")
+def shop():
+    return redirect(url_for("music"))
 
 
 # ─── REST API ─────────────────────────────────────────────────────────────────
@@ -215,14 +223,79 @@ def api_save_settings():
     if not isinstance(data, dict):
         return jsonify({"error": "Invalid payload"}), 400
     save_settings(session["user_id"], data)
+    session["alert_email_recipient"] = str(data.get("alert_email_recipient") or "")
     return jsonify({"ok": True})
 
 
-@app.route("/api/sessions")
+@app.route("/api/sessions", methods=["GET", "POST"])
 def api_sessions():
     if not logged_in():
         return jsonify({"error": "Unauthorized"}), 401
-    return jsonify(get_sessions(session["user_id"]))
+    if request.method == "GET":
+        return jsonify(get_sessions(session["user_id"]))
+
+    data = request.get_json(force=True, silent=True) or {}
+    if not isinstance(data, dict):
+        return jsonify({"error": "Invalid payload"}), 400
+
+    session_record = {
+        "date": str(data.get("date") or "Just now"),
+        "duration": str(data.get("duration") or "0h 00m"),
+        "alerts": int(data.get("alerts") or 0),
+        "max_drowsiness": str(data.get("max_drowsiness") or "0%"),
+        "status": str(data.get("status") or "Completed"),
+        "status_class": str(data.get("status_class") or "completed"),
+        "drowsy_events": int(data.get("drowsy_events") or 0),
+        "sleep_events": int(data.get("sleep_events") or 0),
+    }
+    save_session(session["user_id"], session_record)
+    return jsonify({"ok": True, "session": session_record})
+
+
+@app.route("/api/monitor/start", methods=["POST"])
+def api_monitor_start():
+    if not logged_in():
+        return jsonify({"error": "Unauthorized"}), 401
+    result = camera_monitor.start()
+    if not result.get("ok"):
+        return jsonify(result), 500
+    return jsonify(result)
+
+
+@app.route("/api/monitor/status")
+def api_monitor_status():
+    if not logged_in():
+        return jsonify({"error": "Unauthorized"}), 401
+    return jsonify(camera_monitor.status())
+
+
+@app.route("/api/monitor/stop", methods=["POST"])
+def api_monitor_stop():
+    if not logged_in():
+        return jsonify({"error": "Unauthorized"}), 401
+    summary = camera_monitor.stop()
+    if not summary.get("already_stopped"):
+        save_session(session["user_id"], {
+            "date": summary["date"],
+            "duration": summary["duration"],
+            "alerts": summary["alerts"],
+            "max_drowsiness": summary["max_drowsiness"],
+            "status": summary["status"],
+            "status_class": summary["status_class"],
+            "drowsy_events": summary["drowsy_events"],
+            "sleep_events": summary["sleep_events"],
+        })
+    return jsonify({"ok": True, "session": summary})
+
+
+@app.route("/video_feed")
+def video_feed():
+    if not logged_in():
+        return redirect(url_for("login"))
+    return Response(
+        camera_monitor.frames(),
+        mimetype="multipart/x-mixed-replace; boundary=frame",
+    )
 
 
 # ─── 404 handler ──────────────────────────────────────────────────────────────

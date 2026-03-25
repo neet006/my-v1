@@ -3,16 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Statistics — A.M.A.T.S.</title>
+  <title>Statistics - A.M.A.T.S.</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
-
-  <!-- HEADER -->
   <header class="site-header">
     <div class="brand">
-      <div class="brand-icon">👁️</div>
+      <div class="brand-icon">AI</div>
       <div>
         <div class="brand-name">A.M.A.T.S.</div>
         <div class="brand-tagline">A.I. Monitoring for Alertness, Tiredness and Safety</div>
@@ -20,7 +18,7 @@
     </div>
     <div class="header-status">
       <div class="status-badge"><div class="status-dot"></div> System Active</div>
-      <div class="status-badge">🔒 Secure</div>
+      <div class="status-badge">Secure</div>
       <div class="header-user">
         <div class="user-avatar">{{ user_name[0]|upper }}</div>
         <span style="font-size:13px;color:var(--text-secondary)">{{ user_name }}</span>
@@ -29,76 +27,69 @@
     </div>
   </header>
 
-  <!-- TAB NAV -->
   <nav class="tab-nav">
-    <a href="{{ url_for('dashboard') }}"  {% if active_tab=='live' %}class="active"{% endif %}       id="tab-live"><span class="tab-icon">🖥️</span> Live Monitor</a>
-    <a href="{{ url_for('statistics') }}" {% if active_tab=='statistics' %}class="active"{% endif %} id="tab-stats"><span class="tab-icon">📈</span> Statistics</a>
-    <a href="{{ url_for('shop') }}"       {% if active_tab=='shop' %}class="active"{% endif %}        id="tab-shop"><span class="tab-icon">🛒</span> Shop</a>
-    <a href="{{ url_for('settings') }}"   {% if active_tab=='settings' %}class="active"{% endif %}    id="tab-settings"><span class="tab-icon">⚙️</span> Settings</a>
+    <a href="{{ url_for('dashboard') }}" {% if active_tab=='live' %}class="active"{% endif %} id="tab-live"><span class="tab-icon">CAM</span> Live Monitor</a>
+    <a href="{{ url_for('statistics') }}" {% if active_tab=='statistics' %}class="active"{% endif %} id="tab-stats"><span class="tab-icon">STAT</span> Statistics</a>
+    <a href="{{ url_for('music') }}" {% if active_tab=='music' %}class="active"{% endif %} id="tab-music"><span class="tab-icon">MUS</span> Music</a>
+    <a href="{{ url_for('settings') }}" {% if active_tab=='settings' %}class="active"{% endif %} id="tab-settings"><span class="tab-icon">SET</span> Settings</a>
   </nav>
 
-  <!-- MAIN -->
   <main class="page-main">
-
-    <!-- Stat Cards -->
     <div class="stat-cards">
       <div class="stat-card">
-        <div class="stat-card-icon text-blue">🕐</div>
+        <div class="stat-card-icon text-blue">TM</div>
         <div>
-          <div class="stat-card-val">37.6</div>
+          <div class="stat-card-val" id="stat-total-time">0.0</div>
           <div class="stat-card-label">Total Driving Time</div>
           <div class="stat-card-sub">hours</div>
         </div>
       </div>
       <div class="stat-card">
-        <div class="stat-card-icon text-orange">🔔</div>
+        <div class="stat-card-icon text-orange">AL</div>
         <div>
-          <div class="stat-card-val">13</div>
-          <div class="stat-card-label">Total Alerts</div>
-          <div class="stat-card-sub">this week</div>
+          <div class="stat-card-val" id="stat-total-alerts">0</div>
+          <div class="stat-card-label">Dizzy Alerts</div>
+          <div class="stat-card-sub">saved sessions</div>
         </div>
       </div>
       <div class="stat-card">
-        <div class="stat-card-icon text-green">📉</div>
+        <div class="stat-card-icon text-red">SL</div>
         <div>
-          <div class="stat-card-val">22% <span class="stat-badge-inline">Normal</span></div>
-          <div class="stat-card-label">Avg Drowsiness</div>
+          <div class="stat-card-val"><span id="stat-sleep-events">0</span> <span class="stat-badge-inline">critical</span></div>
+          <div class="stat-card-label">Sleep Risk Events</div>
         </div>
       </div>
       <div class="stat-card">
-        <div class="stat-card-icon" style="color:var(--accent-purple)">🏆</div>
+        <div class="stat-card-icon text-green">AVG</div>
         <div>
-          <div class="stat-card-val">8.2 <span style="font-size:14px;color:var(--text-muted)">/10</span></div>
-          <div class="stat-card-label">Safety Score</div>
+          <div class="stat-card-val"><span id="stat-avg-drowsiness">0%</span> <span style="font-size:14px;color:var(--text-muted)">avg</span></div>
+          <div class="stat-card-label">Average Drowsiness</div>
         </div>
       </div>
     </div>
 
-    <!-- Charts Row 1 -->
     <div class="charts-grid">
       <div class="chart-card">
-        <div class="chart-title">📅 Weekly Alert Summary</div>
+        <div class="chart-title">Weekly Alert Summary</div>
         <div class="chart-wrap"><canvas id="weeklyAlertsChart"></canvas></div>
       </div>
       <div class="chart-card">
-        <div class="chart-title">Drowsiness by Time of Day</div>
+        <div class="chart-title">Drowsiness by Session</div>
         <div class="chart-wrap"><canvas id="drowsinessByTimeChart"></canvas></div>
       </div>
     </div>
 
-    <!-- Charts Row 2 -->
     <div class="charts-grid" style="margin-bottom:20px">
       <div class="chart-card">
         <div class="chart-title">Alert Types Distribution</div>
         <div class="chart-wrap"><canvas id="alertTypesChart"></canvas></div>
       </div>
       <div class="chart-card">
-        <div class="chart-title">Weekly Driving Time vs Average Drowsiness</div>
+        <div class="chart-title">Driving Time vs Average Drowsiness</div>
         <div class="chart-wrap"><canvas id="drivingVsDrowsinessChart"></canvas></div>
       </div>
     </div>
 
-    <!-- Sessions Table -->
     <div class="sessions-card">
       <div class="sessions-header">Recent Driving Sessions</div>
       <table class="sessions-table">
@@ -124,9 +115,9 @@
         </tbody>
       </table>
     </div>
-
   </main>
 
+  <script id="sessions-data" type="application/json">{{ sessions_json | tojson }}</script>
   <script src="{{ url_for('static', filename='js/statistics.js') }}"></script>
 </body>
 </html>

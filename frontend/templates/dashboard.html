@@ -3,15 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Live Monitor — A.M.A.T.S.</title>
+  <title>Live Monitor - A.M.A.T.S.</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
 </head>
 <body>
-
-  <!-- HEADER -->
   <header class="site-header">
     <div class="brand">
-      <div class="brand-icon">👁️</div>
+      <div class="brand-icon">AI</div>
       <div>
         <div class="brand-name">A.M.A.T.S.</div>
         <div class="brand-tagline">A.I. Monitoring for Alertness, Tiredness and Safety</div>
@@ -19,7 +17,7 @@
     </div>
     <div class="header-status">
       <div class="status-badge"><div class="status-dot"></div> System Active</div>
-      <div class="status-badge">🔒 Secure</div>
+      <div class="status-badge">Secure</div>
       <div class="header-user">
         <div class="user-avatar" id="user-avatar-initials">{{ user_name[0]|upper }}</div>
         <span style="font-size:13px; color:var(--text-secondary)">{{ user_name }}</span>
@@ -28,28 +26,36 @@
     </div>
   </header>
 
-  <!-- TAB NAV -->
   <nav class="tab-nav">
-    <a href="{{ url_for('dashboard') }}"  {% if active_tab=='live' %}class="active"{% endif %}        id="tab-live"><span class="tab-icon">🖥️</span> Live Monitor</a>
-    <a href="{{ url_for('statistics') }}" {% if active_tab=='statistics' %}class="active"{% endif %}  id="tab-stats"><span class="tab-icon">📈</span> Statistics</a>
-    <a href="{{ url_for('shop') }}"       {% if active_tab=='shop' %}class="active"{% endif %}         id="tab-shop"><span class="tab-icon">🛒</span> Shop</a>
-    <a href="{{ url_for('settings') }}"   {% if active_tab=='settings' %}class="active"{% endif %}     id="tab-settings"><span class="tab-icon">⚙️</span> Settings</a>
+    <a href="{{ url_for('dashboard') }}" {% if active_tab=='live' %}class="active"{% endif %} id="tab-live"><span class="tab-icon">CAM</span> Live Monitor</a>
+    <a href="{{ url_for('statistics') }}" {% if active_tab=='statistics' %}class="active"{% endif %} id="tab-stats"><span class="tab-icon">STAT</span> Statistics</a>
+    <a href="{{ url_for('music') }}" {% if active_tab=='music' %}class="active"{% endif %} id="tab-music"><span class="tab-icon">MUS</span> Music</a>
+    <a href="{{ url_for('settings') }}" {% if active_tab=='settings' %}class="active"{% endif %} id="tab-settings"><span class="tab-icon">SET</span> Settings</a>
   </nav>
 
-  <!-- MAIN -->
   <main class="page-main">
-    <div class="live-layout">
+    <div class="drive-toolbar">
+      <div>
+        <div class="settings-title" style="font-size:20px">Drive Session</div>
+        <div class="settings-subtitle">Start monitoring, then stop to save the session into statistics.</div>
+      </div>
+      <div class="settings-actions">
+        <button type="button" class="btn btn-primary" id="start-drive-btn">Start Drive</button>
+        <button type="button" class="btn btn-ghost" id="stop-drive-btn" disabled>Stop Drive</button>
+      </div>
+    </div>
 
-      <!-- Camera Feed -->
+    <div class="live-layout">
       <div class="camera-card">
         <div class="camera-header">
-          <div class="camera-title">📷 Driver Camera Feed</div>
+          <div class="camera-title">Driver Camera Feed</div>
           <div class="camera-badges">
-            <span class="wifi-icon">📶</span>
-            <span class="live-badge">LIVE</span>
+            <span class="wifi-icon">NET</span>
+            <span class="live-badge" id="live-indicator">IDLE</span>
           </div>
         </div>
         <div class="camera-feed-area">
+          <img class="camera-stream" id="camera-stream" src="{{ url_for('video_feed') }}" alt="Driver camera stream" />
           <div class="camera-grain"></div>
           <div class="grid-overlay"></div>
           <div class="cam-menu-dots">
@@ -61,16 +67,16 @@
           </div>
           <div class="cam-overlay-bottom">
             <div class="cam-info-left">
-              <div class="info-line" id="face-status-text">Face Detection: Active</div>
-              <div class="info-sub">Resolution: 1920×1080 | FPS:30 | IR Enabled</div>
+              <div class="info-line" id="face-status-text">Face Detection: Standby</div>
+              <div class="info-sub">Resolution: 1920x1080 | FPS:30 | IR Enabled</div>
             </div>
-            <div class="cam-info-right" id="eye-tracking-text">Eye Tracking: Open</div>
+            <div class="cam-info-right" id="eye-tracking-text">Eye Tracking: Waiting</div>
           </div>
         </div>
         <div class="camera-footer">
           <div class="cam-footer-left">
-            <span>🌙 IR Night Vision: On</span>
-            <span>🎭 Face Detection: Active</span>
+            <span>IR Night Vision: On</span>
+            <span>Face Detection: Active</span>
           </div>
           <div class="quality-indicator">
             Quality: HD <div class="quality-dot"></div>
@@ -78,23 +84,22 @@
         </div>
       </div>
 
-      <!-- Driver Status Panel -->
       <div class="status-panel">
         <div class="status-section">
-          <div class="status-header">⚡ Driver Status</div>
+          <div class="status-header">Driver Status</div>
 
           <div class="status-row">
             <span class="status-row-label">Current Status</span>
-            <span class="status-row-value"><span class="badge badge-alert" id="current-status-badge">ALERT</span></span>
+            <span class="status-row-value"><span class="badge badge-dark" id="current-status-badge">IDLE</span></span>
           </div>
 
           <div class="drowsiness-bar-wrap">
             <div class="drowsiness-bar-labels">
               <span>Drowsiness Level</span>
-              <strong id="drowsiness-pct">5%</strong>
+              <strong id="drowsiness-pct">0%</strong>
             </div>
             <div class="drowsiness-bar-track">
-              <div class="drowsiness-bar-fill" id="drowsiness-fill" style="width:5%"></div>
+              <div class="drowsiness-bar-fill" id="drowsiness-fill" style="width:0%"></div>
             </div>
             <div class="drowsiness-bar-hints">
               <span>Alert</span><span>Drowsy</span><span>Critical</span>
@@ -103,25 +108,24 @@
 
           <div class="status-row">
             <span class="status-row-label">Eyes Status</span>
-            <span class="status-row-value text-green" id="eye-status-val">👁️ Open</span>
+            <span class="status-row-value text-green" id="eye-status-val">Waiting</span>
           </div>
           <div class="status-row">
             <span class="status-row-label">Blink Rate</span>
-            <span class="status-row-value" id="blink-rate-val">17 bpm</span>
+            <span class="status-row-value" id="blink-rate-val">0 bpm</span>
           </div>
           <div class="status-row" style="border-bottom:none">
             <span class="status-row-label">Session Time</span>
-            <span class="status-row-value" id="session-time-val">🕐 00:00:00</span>
+            <span class="status-row-value" id="session-time-val">00:00:00</span>
           </div>
         </div>
 
         <div class="alerts-section">
           <div class="alerts-title">Recent Alerts</div>
-          <div class="no-alerts" id="alerts-list">No alerts today</div>
+          <div class="no-alerts" id="alerts-list">No alerts in this drive</div>
         </div>
       </div>
-
-    </div><!-- /live-layout -->
+    </div>
   </main>
 
   <div class="toast-container" id="toast-container"></div>

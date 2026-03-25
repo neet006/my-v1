@@ -1,37 +1,96 @@
 /**
- * statistics.js — Chart.js charts for A.M.A.T.S. Statistics page.
+ * statistics.js - Build charts from saved session data.
  */
 (function () {
   'use strict';
 
-  const DARK_BG   = '#13151c';
-  const GRID_CLR  = 'rgba(255,255,255,.06)';
-  const TEXT_CLR  = '#8b90a8';
-  const DAYS      = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  function parseSessions() {
+    var node = document.getElementById('sessions-data');
+    if (!node) return [];
+    try {
+      return JSON.parse(node.textContent || '[]');
+    } catch (_err) {
+      return [];
+    }
+  }
 
-  Chart.defaults.color       = TEXT_CLR;
-  Chart.defaults.borderColor = GRID_CLR;
-  Chart.defaults.font.family = "'Inter', sans-serif";
-  Chart.defaults.font.size   = 11;
+  function parseDurationHours(duration) {
+    var text = String(duration || '');
+    var hourMatch = text.match(/(\d+)\s*h/i);
+    var minuteMatch = text.match(/(\d+)\s*m/i);
+    var hours = hourMatch ? parseInt(hourMatch[1], 10) : 0;
+    var minutes = minuteMatch ? parseInt(minuteMatch[1], 10) : 0;
+    return hours + (minutes / 60);
+  }
 
-  function ctx(id) {
+  function parsePercent(value) {
+    var match = String(value || '').match(/(\d+)/);
+    return match ? parseInt(match[1], 10) : 0;
+  }
+
+  function chartCtx(id) {
     return document.getElementById(id);
   }
 
-  // 1 ── Weekly Alert Summary (Bar)
-  new Chart(ctx('weeklyAlertsChart'), {
+  var sessions = parseSessions();
+  var normalized = sessions.map(function (session, index) {
+    var maxDrowsiness = parsePercent(session.max_drowsiness);
+    var alerts = Number(session.alerts || 0);
+    var drowsyEvents = Number(session.drowsy_events != null ? session.drowsy_events : alerts);
+    var sleepEvents = Number(session.sleep_events != null ? session.sleep_events : (maxDrowsiness >= 80 ? 1 : 0));
+
+    return {
+      label: 'S' + (sessions.length - index),
+      date: session.date || '',
+      durationHours: parseDurationHours(session.duration),
+      alerts: alerts,
+      drowsyEvents: drowsyEvents,
+      sleepEvents: sleepEvents,
+      maxDrowsiness: maxDrowsiness
+    };
+  }).reverse();
+
+  var totalHours = normalized.reduce(function (sum, session) { return sum + session.durationHours; }, 0);
+  var totalAlerts = normalized.reduce(function (sum, session) { return sum + session.drowsyEvents; }, 0);
+  var totalSleepEvents = normalized.reduce(function (sum, session) { return sum + session.sleepEvents; }, 0);
+  var avgDrowsiness = normalized.length
+    ? normalized.reduce(function (sum, session) { return sum + session.maxDrowsiness; }, 0) / normalized.length
+    : 0;
+
+  var totalTimeEl = document.getElementById('stat-total-time');
+  var totalAlertsEl = document.getElementById('stat-total-alerts');
+  var sleepEventsEl = document.getElementById('stat-sleep-events');
+  var avgDrowsinessEl = document.getElementById('stat-avg-drowsiness');
+
+  if (totalTimeEl) totalTimeEl.textContent = totalHours.toFixed(1);
+  if (totalAlertsEl) totalAlertsEl.textContent = String(totalAlerts);
+  if (sleepEventsEl) sleepEventsEl.textContent = String(totalSleepEvents);
+  if (avgDrowsinessEl) avgDrowsinessEl.textContent = Math.round(avgDrowsiness) + '%';
+
+  if (!window.Chart) return;
+
+  Chart.defaults.color = '#8b90a8';
+  Chart.defaults.borderColor = 'rgba(255,255,255,.06)';
+  Chart.defaults.font.family = "'Inter', sans-serif";
+  Chart.defaults.font.size = 11;
+
+  var labels = normalized.map(function (session) { return session.label; });
+
+  new Chart(chartCtx('weeklyAlertsChart'), {
     type: 'bar',
     data: {
-      labels: DAYS,
+      labels: labels,
       datasets: [{
-        data: [2, 1, 4, 0, 3, 1, 2],
+        label: 'Dizzy Alerts',
+        data: normalized.map(function (session) { return session.drowsyEvents; }),
         backgroundColor: '#e8394b',
         borderRadius: 4,
-        borderSkipped: false,
+        borderSkipped: false
       }]
     },
     options: {
-      responsive: true, maintainAspectRatio: false,
+      responsive: true,
+      maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
         x: { grid: { display: false } },
@@ -40,46 +99,47 @@
     }
   });
 
-  // 2 ── Drowsiness by Time of Day (Line)
-  new Chart(ctx('drowsinessByTimeChart'), {
+  new Chart(chartCtx('drowsinessByTimeChart'), {
     type: 'line',
     data: {
-      labels: ['6AM','8AM','10AM','12PM','2PM','4PM','6PM','8PM','10PM'],
+      labels: labels,
       datasets: [{
-        data: [45, 15, 22, 32, 18, 28, 35, 40, 55],
+        label: 'Max Drowsiness (%)',
+        data: normalized.map(function (session) { return session.maxDrowsiness; }),
         borderColor: '#ff9500',
         backgroundColor: 'rgba(255,149,0,.08)',
-        tension: 0.4,
+        tension: 0.35,
         fill: true,
         pointBackgroundColor: '#ff9500',
         pointRadius: 4,
-        borderWidth: 2,
+        borderWidth: 2
       }]
     },
     options: {
-      responsive: true, maintainAspectRatio: false,
+      responsive: true,
+      maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
         x: { grid: { display: false } },
-        y: { beginAtZero: true, max: 70 }
+        y: { beginAtZero: true, max: 100 }
       }
     }
   });
 
-  // 3 ── Alert Types Distribution (Pie)
-  new Chart(ctx('alertTypesChart'), {
+  new Chart(chartCtx('alertTypesChart'), {
     type: 'pie',
     data: {
-      labels: ['Eyes Closed 45%', 'Slow Blinks 30%', 'Head Nod 15%', 'Micro Sleep 10%'],
+      labels: ['Drowsy Alerts', 'Sleep Risk Events'],
       datasets: [{
-        data: [45, 30, 15, 10],
-        backgroundColor: ['#e8394b','#ff9500','#7c5cfc','#4d7cfe'],
-        borderColor: DARK_BG,
-        borderWidth: 2,
+        data: [totalAlerts, totalSleepEvents],
+        backgroundColor: ['#4d7cfe', '#e8394b'],
+        borderColor: '#13151c',
+        borderWidth: 2
       }]
     },
     options: {
-      responsive: true, maintainAspectRatio: false,
+      responsive: true,
+      maintainAspectRatio: false,
       plugins: {
         legend: {
           position: 'right',
@@ -89,37 +149,37 @@
     }
   });
 
-  // 4 ── Weekly Driving Time vs Avg Drowsiness (Dual Bar)
-  new Chart(ctx('drivingVsDrowsinessChart'), {
+  new Chart(chartCtx('drivingVsDrowsinessChart'), {
     type: 'bar',
     data: {
-      labels: DAYS,
+      labels: labels,
       datasets: [
         {
           label: 'Driving (hrs)',
-          data: [6, 8, 12, 4, 3, 9, 7],
+          data: normalized.map(function (session) { return Number(session.durationHours.toFixed(2)); }),
           backgroundColor: '#4d7cfe',
           borderRadius: 3,
-          yAxisID: 'y',
+          yAxisID: 'y'
         },
         {
-          label: 'Avg Drowsiness (%)',
-          data: [18, 24, 32, 12, 9, 27, 19],
+          label: 'Max Drowsiness (%)',
+          data: normalized.map(function (session) { return session.maxDrowsiness; }),
           backgroundColor: '#00d68f',
           borderRadius: 3,
-          yAxisID: 'y1',
+          yAxisID: 'y1'
         }
       ]
     },
     options: {
-      responsive: true, maintainAspectRatio: false,
+      responsive: true,
+      maintainAspectRatio: false,
       plugins: {
         legend: { position: 'top', labels: { boxWidth: 10, padding: 10 } }
       },
       scales: {
         x: { grid: { display: false } },
-        y:  { beginAtZero: true, position: 'left',  ticks: { stepSize: 3 }, max: 14 },
-        y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false }, max: 40, ticks: { stepSize: 9 } }
+        y: { beginAtZero: true, position: 'left' },
+        y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false }, max: 100 }
       }
     }
   });
