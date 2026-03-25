@@ -1,0 +1,21 @@
+# Secret credentials - NEVER upload this
+.env
+
+# Runtime data - no need to upload
+data/
+
+# Python cache files - auto-generated, not needed
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environment - too large, others create their own
+.venv/
+venv/
+
+# Video recordings
+*.avi
+
+# IDE settings
+.idea/
+*.iml

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Up — A.M.A.T.S.</title>
+  <meta name="description" content="Create your A.M.A.T.S. Driver Safety System account" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body class="auth-page">
+
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">👁️</div>
+      <div class="auth-logo-text">
+        <div class="name">A.M.A.T.S.</div>
+        <div class="tagline">A.I. Monitoring for Alertness, Tiredness and Safety</div>
+      </div>
+    </div>
+
+    <h1 class="auth-title">Create account</h1>
+    <p class="auth-subtitle">Start monitoring your driving safety today</p>
+
+    {% if error %}
+    <div class="auth-error">
+      <span>⚠️</span> {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('signup') }}" id="signup-form" novalidate>
+      <div class="auth-field">
+        <label for="name">Full Name</label>
+        <input type="text" id="name" name="name" placeholder="John Doe" required autocomplete="name" />
+      </div>
+      <div class="auth-field">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" placeholder="you@example.com" required autocomplete="email" />
+      </div>
+      <div class="auth-field">
+        <label for="password">Password <span style="font-weight:400; color:var(--text-muted)">(min. 6 characters)</span></label>
+        <input type="password" id="password" name="password" placeholder="••••••••" required autocomplete="new-password" />
+      </div>
+      <div class="auth-field">
+        <label for="confirm_password">Confirm Password</label>
+        <input type="password" id="confirm_password" name="confirm_password" placeholder="••••••••" required autocomplete="new-password" />
+      </div>
+      <button type="submit" class="auth-btn" id="signup-submit-btn">Create Account →</button>
+    </form>
+
+    <div class="auth-footer">
+      Already have an account? <a href="{{ url_for('login') }}" id="goto-login">Sign In</a>
+      &nbsp;·&nbsp;
+      <a href="{{ url_for('landing') }}" id="goto-landing">← Home</a>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+</body>
+</html>

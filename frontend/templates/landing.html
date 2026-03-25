@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>A.M.A.T.S. — AI Driver Safety System</title>
+  <meta name="description" content="A.M.A.T.S. — AI Monitoring for Alertness, Tiredness and Safety. Real-time drowsiness detection for safer driving." />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body class="landing-page">
+
+  <!-- NAV -->
+  <nav class="landing-nav">
+    <div class="brand">
+      <div class="brand-icon">👁️</div>
+      <div>
+        <div class="brand-name">A.M.A.T.S.</div>
+      </div>
+    </div>
+    <div class="landing-nav-links">
+      <a href="{{ url_for('login') }}" class="nav-login">Log In</a>
+      <a href="{{ url_for('signup') }}" class="nav-signup">Get Started</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-eyebrow">
+      <span>🛡️</span> AI-Powered Driver Safety
+    </div>
+    <h1 class="hero-title">
+      Stay Alert.<br>
+      Drive <span class="highlight">Safer</span>.
+    </h1>
+    <p class="hero-sub">
+      A.M.A.T.S. uses advanced computer vision to monitor drowsiness, blink rates,
+      and head position in real time — keeping you and everyone on the road safe.
+    </p>
+    <div class="hero-cta">
+      <a href="{{ url_for('signup') }}" class="cta-primary" id="hero-signup-btn">🚀 Get Started Free</a>
+      <a href="{{ url_for('login') }}"  class="cta-secondary" id="hero-login-btn">→ Sign In</a>
+    </div>
+
+    <!-- Preview card -->
+    <div class="hero-preview">
+      <div class="preview-bar">
+        <div class="preview-dot" style="background:#ff5f57"></div>
+        <div class="preview-dot" style="background:#febc2e"></div>
+        <div class="preview-dot" style="background:#28c840"></div>
+        <span style="margin-left:8px; font-size:11px; color:var(--text-muted)">A.M.A.T.S. — Live Monitor</span>
+      </div>
+      <div class="preview-camera">
+        <div class="camera-grain"></div>
+        <div class="grid-overlay"></div>
+        <div class="face-oval"></div>
+        <div class="face-box"></div>
+        <div class="cam-overlay-bottom">
+          <div class="cam-info-left">
+            <div class="info-line">Face Detection: Active</div>
+            <div class="info-sub">Resolution: 1920×1080 | FPS:30 | IR Enabled</div>
+          </div>
+          <div class="cam-info-right">Eye Tracking: Open</div>
+        </div>
+        <div class="rec-badge">
+          <div class="rec-dot"></div> REC
+        </div>
+      </div>
+      <div class="preview-stats">
+        <div class="preview-stat">
+          <div class="val text-green">5%</div>
+          <div class="lbl">Drowsiness</div>
+        </div>
+        <div class="preview-stat">
+          <div class="val text-blue">17</div>
+          <div class="lbl">Blink Rate (bpm)</div>
+        </div>
+        <div class="preview-stat">
+          <div class="val" style="color:var(--text-primary)">Open</div>
+          <div class="lbl">Eye Status</div>
+        </div>
+        <div class="preview-stat">
+          <div class="val text-green">8.2<span style="font-size:14px;color:var(--text-muted)">/10</span></div>
+          <div class="lbl">Safety Score</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features">
+    <div class="section-eyebrow">✨ Features</div>
+    <h2 class="section-title">Everything you need<br>to drive safely</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(77,124,254,.12)">👁️</div>
+        <div class="feature-title">Real-Time Drowsiness Detection</div>
+        <div class="feature-desc">Monitors Eye Aspect Ratio (EAR) using MediaPipe to detect eye closure and microsleep events in real time.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(0,214,143,.12)">📊</div>
+        <div class="feature-title">Driving Session Analytics</div>
+        <div class="feature-desc">Detailed statistics on drowsiness levels, alert frequency, blink rates, and safety scores across all sessions.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(255,149,0,.12)">🔔</div>
+        <div class="feature-title">Multi-Channel Alerts</div>
+        <div class="feature-desc">Voice alerts, visual warnings, email notifications, and vibration alerts keep you aware before danger strikes.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(124,92,252,.12)">🌙</div>
+        <div class="feature-title">Night Vision (IR)</div>
+        <div class="feature-desc">IR-enabled night detection ensures the system works just as well in low-light and night conditions.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(255,71,87,.12)">🆘</div>
+        <div class="feature-title">Emergency Contacts</div>
+        <div class="feature-desc">Automatically alerts emergency contacts during critical drowsiness events via email or SMS.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(255,211,42,.12)">🔒</div>
+        <div class="feature-title">Local Data Storage</div>
+        <div class="feature-desc">All session data is stored locally — no cloud required. Your driving data stays fully private and secure.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="landing-footer">
+    <div>© 2026 A.M.A.T.S. — A.I. Monitoring for Alertness, Tiredness and Safety</div>
+    <div>Built with ❤️ for safer roads</div>
+  </footer>
+
+</body>
+</html>

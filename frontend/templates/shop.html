@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shop — A.M.A.T.S.</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="brand">
+      <div class="brand-icon">👁️</div>
+      <div>
+        <div class="brand-name">A.M.A.T.S.</div>
+        <div class="brand-tagline">A.I. Monitoring for Alertness, Tiredness and Safety</div>
+      </div>
+    </div>
+    <div class="header-status">
+      <div class="status-badge"><div class="status-dot"></div> System Active</div>
+      <div class="status-badge">🔒 Secure</div>
+      <div class="header-user">
+        <div class="user-avatar">{{ user_name[0]|upper }}</div>
+        <span style="font-size:13px;color:var(--text-secondary)">{{ user_name }}</span>
+        <a href="{{ url_for('logout') }}" class="logout-btn" id="logout-btn">Logout</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- TAB NAV -->
+  <nav class="tab-nav">
+    <a href="{{ url_for('dashboard') }}"  {% if active_tab=='live' %}class="active"{% endif %}       id="tab-live"><span class="tab-icon">🖥️</span> Live Monitor</a>
+    <a href="{{ url_for('statistics') }}" {% if active_tab=='statistics' %}class="active"{% endif %} id="tab-stats"><span class="tab-icon">📈</span> Statistics</a>
+    <a href="{{ url_for('shop') }}"       {% if active_tab=='shop' %}class="active"{% endif %}        id="tab-shop"><span class="tab-icon">🛒</span> Shop</a>
+    <a href="{{ url_for('settings') }}"   {% if active_tab=='settings' %}class="active"{% endif %}    id="tab-settings"><span class="tab-icon">⚙️</span> Settings</a>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="page-main">
+    <div class="shop-header">
+      <div class="shop-title">A.M.A.T.S. Store</div>
+      <div class="shop-subtitle">Official accessories and upgrades for your safety system</div>
+    </div>
+
+    <div class="shop-grid">
+      <div class="shop-card">
+        <div class="shop-img" style="background:rgba(77,124,254,.08)">📷</div>
+        <div class="shop-body">
+          <div class="shop-name">IR Night Vision Camera</div>
+          <div class="shop-desc">Full HD 1080p infrared camera with wide-angle lens for accurate night detection.</div>
+          <div class="shop-footer">
+            <div class="shop-price">$89.99</div>
+            <button class="shop-btn" onclick="addToCart('IR Night Vision Camera')">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+      <div class="shop-card">
+        <div class="shop-img" style="background:rgba(0,214,143,.08)">🔊</div>
+        <div class="shop-body">
+          <div class="shop-name">Smart Alert Speaker</div>
+          <div class="shop-desc">Compact in-vehicle speaker for crystal-clear voice warnings and audio alerts.</div>
+          <div class="shop-footer">
+            <div class="shop-price">$34.99</div>
+            <button class="shop-btn" onclick="addToCart('Smart Alert Speaker')">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+      <div class="shop-card">
+        <div class="shop-img" style="background:rgba(255,149,0,.08)">📳</div>
+        <div class="shop-body">
+          <div class="shop-name">Vibration Alert Module</div>
+          <div class="shop-desc">Seat-clip vibration module that delivers haptic alerts when drowsiness is detected.</div>
+          <div class="shop-footer">
+            <div class="shop-price">$24.99</div>
+            <button class="shop-btn" onclick="addToCart('Vibration Alert Module')">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+      <div class="shop-card">
+        <div class="shop-img" style="background:rgba(124,92,252,.08)">🖥️</div>
+        <div class="shop-body">
+          <div class="shop-name">Dashboard HUD Display</div>
+          <div class="shop-desc">Heads-up display that shows real-time drowsiness score and alerts on your windshield.</div>
+          <div class="shop-footer">
+            <div class="shop-price">$149.99</div>
+            <button class="shop-btn" onclick="addToCart('Dashboard HUD Display')">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+      <div class="shop-card">
+        <div class="shop-img" style="background:rgba(255,71,87,.08)">🔋</div>
+        <div class="shop-body">
+          <div class="shop-name">OBD-II Power Adapter</div>
+          <div class="shop-desc">Powers your A.M.A.T.S. system directly from your vehicle's OBD-II port.</div>
+          <div class="shop-footer">
+            <div class="shop-price">$19.99</div>
+            <button class="shop-btn" onclick="addToCart('OBD-II Power Adapter')">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+      <div class="shop-card">
+        <div class="shop-img" style="background:rgba(255,211,42,.08)">⭐</div>
+        <div class="shop-body">
+          <div class="shop-name">A.M.A.T.S. Pro License</div>
+          <div class="shop-desc">Unlock advanced analytics, cloud backup, fleet management, and priority support.</div>
+          <div class="shop-footer">
+            <div class="shop-price">$9.99<span style="font-size:12px;color:var(--text-muted)">/mo</span></div>
+            <button class="shop-btn" onclick="addToCart('Pro License')">Subscribe</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="toast-container" id="toast-container"></div>
+  <script>
+    function showToast(msg, type) {
+      type = type || 'success';
+      var c = document.getElementById('toast-container');
+      if (!c) return;
+      var t = document.createElement('div');
+      t.className = 'toast ' + (type === 'success' ? 'toast-success' : 'toast-error');
+      t.textContent = (type === 'success' ? '\u2705 ' : '\u274c ') + msg;
+      c.appendChild(t);
+      setTimeout(function () {
+        t.style.animation = 'fade-out .3s ease forwards';
+        setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 300);
+      }, 3000);
+    }
+    function addToCart(name) {
+      showToast(name + ' added to cart!', 'success');
+    }
+  </script>
+</body>
+</html>

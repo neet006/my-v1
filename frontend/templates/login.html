@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In — A.M.A.T.S.</title>
+  <meta name="description" content="Sign in to A.M.A.T.S. Driver Safety System" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body class="auth-page">
+
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">👁️</div>
+      <div class="auth-logo-text">
+        <div class="name">A.M.A.T.S.</div>
+        <div class="tagline">A.I. Monitoring for Alertness, Tiredness and Safety</div>
+      </div>
+    </div>
+
+    <h1 class="auth-title">Welcome back</h1>
+    <p class="auth-subtitle">Sign in to your account to continue</p>
+
+    {% if request.args.get('registered') %}
+    <div class="auth-success">
+      <span>✅</span> Account created! Please sign in.
+    </div>
+    {% endif %}
+
+    {% if error %}
+    <div class="auth-error">
+      <span>⚠️</span> {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('login') }}" id="login-form" novalidate>
+      <div class="auth-field">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" placeholder="you@example.com" required autocomplete="email" />
+      </div>
+      <div class="auth-field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="••••••••" required autocomplete="current-password" />
+      </div>
+      <button type="submit" class="auth-btn" id="login-submit-btn">Sign In →</button>
+    </form>
+
+    <div class="auth-footer">
+      Don't have an account? <a href="{{ url_for('signup') }}" id="goto-signup">Sign Up</a>
+      &nbsp;·&nbsp;
+      <a href="{{ url_for('landing') }}" id="goto-landing">← Home</a>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+</body>
+</html>

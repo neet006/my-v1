@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings — A.M.A.T.S.</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="brand">
+      <div class="brand-icon">👁️</div>
+      <div>
+        <div class="brand-name">A.M.A.T.S.</div>
+        <div class="brand-tagline">A.I. Monitoring for Alertness, Tiredness and Safety</div>
+      </div>
+    </div>
+    <div class="header-status">
+      <div class="status-badge"><div class="status-dot"></div> System Active</div>
+      <div class="status-badge">🔒 Secure</div>
+      <div class="header-user">
+        <div class="user-avatar">{{ user_name[0]|upper }}</div>
+        <span style="font-size:13px;color:var(--text-secondary)">{{ user_name }}</span>
+        <a href="{{ url_for('logout') }}" class="logout-btn" id="logout-btn">Logout</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- TAB NAV -->
+  <nav class="tab-nav">
+    <a href="{{ url_for('dashboard') }}"  {% if active_tab=='live' %}class="active"{% endif %}       id="tab-live"><span class="tab-icon">🖥️</span> Live Monitor</a>
+    <a href="{{ url_for('statistics') }}" {% if active_tab=='statistics' %}class="active"{% endif %}  id="tab-stats"><span class="tab-icon">📈</span> Statistics</a>
+    <a href="{{ url_for('shop') }}"       {% if active_tab=='shop' %}class="active"{% endif %}         id="tab-shop"><span class="tab-icon">🛒</span> Shop</a>
+    <a href="{{ url_for('settings') }}"   {% if active_tab=='settings' %}class="active"{% endif %}     id="tab-settings"><span class="tab-icon">⚙️</span> Settings</a>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="page-main">
+
+    <div class="settings-page-header">
+      <div>
+        <div class="settings-title">System Settings</div>
+        <div class="settings-subtitle">Configure your driver drowsiness detection system</div>
+      </div>
+      <div class="settings-actions">
+        <button type="button" class="btn btn-ghost" id="reset-defaults-btn">🔄 Reset to Defaults</button>
+        <button type="button" class="btn btn-primary" id="save-settings-btn">💾 Save Settings</button>
+      </div>
+    </div>
+
+    <form id="settings-form" autocomplete="off">
+    <div class="settings-grid">
+
+      <!-- Detection Settings -->
+      <div class="card">
+        <div class="card-title"><span class="card-icon">👁️</span> Detection Settings</div>
+
+        <div class="range-row">
+          <div class="range-label">
+            <span>Detection Sensitivity</span>
+            <strong id="sensitivity-val">Current: {{ settings.detection_sensitivity }}%</strong>
+          </div>
+          <input type="range" id="detection_sensitivity" name="detection_sensitivity"
+                 min="1" max="100" value="{{ settings.detection_sensitivity }}" />
+          <div class="range-hints"><span>Low (1)</span><span>High (100)</span></div>
+        </div>
+
+        <div class="range-row" style="border-top:1px solid var(--border);margin-top:8px;padding-top:16px">
+          <div class="range-label">
+            <span style="color:var(--accent-blue);font-weight:600">Eye Closure Threshold (seconds)</span>
+          </div>
+          <input type="range" id="eye_closure_threshold" name="eye_closure_threshold"
+                 min="1" max="10" value="{{ settings.eye_closure_threshold }}" />
+          <div style="font-size:11px;color:var(--text-muted);margin-top:4px" id="eye-closure-hint">
+            Alert when eyes are closed for {{ settings.eye_closure_threshold }} second{{ 's' if settings.eye_closure_threshold != 1 }}
+          </div>
+        </div>
+
+        <div class="toggle-row">
+          <div><div class="toggle-label">Blink Rate Monitoring</div></div>
+          <label class="toggle">
+            <input type="checkbox" name="blink_rate_monitoring" id="blink_rate_monitoring"
+                   {% if settings.blink_rate_monitoring %}checked="checked"{% endif %}>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Head Pose Tracking</div></div>
+          <label class="toggle">
+            <input type="checkbox" name="head_pose_tracking" id="head_pose_tracking"
+                   {% if settings.head_pose_tracking %}checked="checked"{% endif %}>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Yawn Detection</div></div>
+          <label class="toggle">
+            <input type="checkbox" name="yawn_detection" id="yawn_detection"
+                   {% if settings.yawn_detection %}checked="checked"{% endif %}>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Alert Settings -->
+      <div class="card">
+        <div class="card-title"><span class="card-icon">🔔</span> Alert Settings</div>
+
+        <div class="toggle-row">
+          <div><div class="toggle-label">Audio Alerts</div></div>
+          <label class="toggle">
+            <input type="checkbox" name="audio_alerts" id="audio_alerts"
+                   {% if settings.audio_alerts %}checked="checked"{% endif %}>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Voice Warnings</div></div>
+          <label class="toggle">
+            <input type="checkbox" name="voice_warnings" id="voice_warnings"
+                   {% if settings.voice_warnings %}checked="checked"{% endif %}>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Visual Alerts</div></div>
+          <label class="toggle">
+            <input type="checkbox" name="visual_alerts" id="visual_alerts"
+                   {% if settings.visual_alerts %}checked="checked"{% endif %}>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Vibration Alerts</div></div>
+          <label class="toggle">
+            <input type="checkbox" name="vibration_alerts" id="vibration_alerts"
+                   {% if settings.vibration_alerts %}checked="checked"{% endif %}>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="range-row" style="margin-top:8px">
+          <div class="range-label">
+            <span>Alert Volume</span>
+            <strong id="volume-val">{{ settings.alert_volume }}%</strong>
+          </div>
+          <input type="range" id="alert_volume" name="alert_volume"
+                 min="0" max="100" value="{{ settings.alert_volume }}" />
+          <div class="range-hints"><span>Silent</span><span>Maximum</span></div>
+        </div>
+
+        <div class="range-row">
+          <div class="range-label">
+            <span style="color:var(--accent-blue);font-weight:600">Alert Delay (seconds)</span>
+          </div>
+          <input type="range" id="alert_delay" name="alert_delay"
+                 min="0" max="10" value="{{ settings.alert_delay }}" />
+          <div style="font-size:11px;color:var(--text-muted);margin-top:4px" id="alert-delay-hint">
+            {% if settings.alert_delay == 0 %}
+              No delay — alert immediately after detection
+            {% else %}
+              Delay alerts by {{ settings.alert_delay }} second{{ 's' if settings.alert_delay != 1 }} after detection
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Camera Settings -->
+      <div class="card">
+        <div class="card-title"><span class="card-icon">📷</span> Camera Settings</div>
+
+        <div style="margin-bottom:14px">
+          <label class="form-label" for="camera_resolution">Camera Resolution</label>
+          <select name="camera_resolution" id="camera_resolution" class="form-select">
+            <option value="1920x1080" {% if settings.camera_resolution == '1920x1080' %}selected="selected"{% endif %}>1920×1080 (Full HD)</option>
+            <option value="1280x720"  {% if settings.camera_resolution == '1280x720'  %}selected="selected"{% endif %}>1280×720 (HD)</option>
+            <option value="640x480"   {% if settings.camera_resolution == '640x480'   %}selected="selected"{% endif %}>640×480 (SD)</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom:14px">
+          <label class="form-label" for="frame_rate">Frame Rate</label>
+          <select name="frame_rate" id="frame_rate" class="form-select">
+            <option value="30" {% if settings.frame_rate == '30' %}selected="selected"{% endif %}>30 FPS</option>
+            <option value="60" {% if settings.frame_rate == '60' %}selected="selected"{% endif %}>60 FPS</option>
+            <option value="15" {% if settings.frame_rate == '15' %}selected="selected"{% endif %}>15 FPS</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom:14px">
+          <label class="form-label" for="face_detection_mode">Face Detection Mode</label>
+          <select name="face_detection_mode" id="face_detection_mode" class="form-select">
+            <option value="High Performance" {% if settings.face_detection_mode == 'High Performance' %}selected="selected"{% endif %}>High Performance</option>
+            <option value="Balanced"         {% if settings.face_detection_mode == 'Balanced'         %}selected="selected"{% endif %}>Balanced</option>
+            <option value="Low Power"        {% if settings.face_detection_mode == 'Low Power'        %}selected="selected"{% endif %}>Low Power</option>
+          </select>
+        </div>
+
+        <div class="toggle-row">
+          <div><div class="toggle-label">Night Vision (IR)</div></div>
+          <label class="toggle">
+            <input type="checkbox" name="night_vision" id="night_vision"
+                   {% if settings.night_vision %}checked="checked"{% endif %}>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Auto Exposure</div></div>
+          <label class="toggle">
+            <input type="checkbox" name="auto_exposure" id="auto_exposure"
+                   {% if settings.auto_exposure %}checked="checked"{% endif %}>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Privacy & Safety -->
+      <div class="card">
+        <div class="card-title"><span class="card-icon">🛡️</span> Privacy &amp; Safety</div>
+
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Emergency Contacts</div>
+            <div class="toggle-desc">Alert contacts during critical events</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" name="emergency_contacts" id="emergency_contacts"
+                   {% if settings.emergency_contacts %}checked="checked"{% endif %}>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Data Logging</div>
+            <div class="toggle-desc">Save driving session data locally</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" name="data_logging" id="data_logging"
+                   {% if settings.data_logging %}checked="checked"{% endif %}>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Privacy Mode</div>
+            <div class="toggle-desc">Disable all data collection</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" name="privacy_mode" id="privacy_mode"
+                   {% if settings.privacy_mode %}checked="checked"{% endif %}>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Share Anonymous Data</div>
+            <div class="toggle-desc">Help improve the system</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" name="share_anonymous_data" id="share_anonymous_data"
+                   {% if settings.share_anonymous_data %}checked="checked"{% endif %}>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div style="margin-top:16px">
+          <label class="form-label" for="emergency_contact_phone">Emergency Contact Phone</label>
+          <input type="tel" name="emergency_contact_phone" id="emergency_contact_phone"
+                 class="form-input" placeholder="Phone number"
+                 value="{{ settings.emergency_contact_phone | e }}" />
+        </div>
+      </div>
+
+    </div><!-- /settings-grid -->
+
+    <!-- System Status Bar -->
+    <div class="system-status-bar">
+      <div class="sys-stat">
+        <label>Camera Status</label>
+        <span class="sys-badge sys-badge-fill">Connected</span>
+      </div>
+      <div class="sys-sep"></div>
+      <div class="sys-stat">
+        <label>AI Model Status</label>
+        <span class="sys-badge sys-badge-fill">Loaded</span>
+      </div>
+      <div class="sys-sep"></div>
+      <div class="sys-stat">
+        <label>System Version</label>
+        <span style="font-size:13px;color:var(--text-secondary)">v2.1.3</span>
+      </div>
+    </div>
+
+    </form>
+  </main>
+
+  <div class="toast-container" id="toast-container"></div>
+  <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+</body>
+</html>
